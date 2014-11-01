@@ -1,0 +1,13 @@
+build
+bin/*
+features
+Fiji*/*
+ImageJ
+ImageMagick*/*
+ImageMagick*
+testset
+trainset
+fiji*
+jimi*
+mpicbg*
+

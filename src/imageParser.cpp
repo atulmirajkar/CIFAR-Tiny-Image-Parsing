@@ -1,0 +1,118 @@
+#include "ImageParser.h"
+
+//input
+//1 labels 
+//2 test bin
+//3 train bin
+BinaryImage::BinaryImage()
+{
+	
+}
+
+void BinaryImage::read(ifstream & ifs)
+{
+	char labelBuffer[1];
+	ifs.read(labelBuffer, 1);
+	this->label = labelBuffer[0];
+	ifs.read(this->r, 32*32);
+	ifs.read(this->b, 32*32);
+	ifs.read(this->g, 32*32);
+}
+
+char * BinaryImage::asPixels(char stream[])
+{
+	int i=0;
+	int s=0;
+	for(;i<(32*32);i++)
+	{
+		stream[s++]=r[i];
+		stream[s++]=b[i];
+		stream[s++]=g[i];
+		
+	}
+	return stream;
+}
+
+int BinaryImage::getLabel()
+{
+	return (int)label;
+}
+
+void makeOutputDirectories()
+{
+	int status = 0;
+	status = mkdir("trainset", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if(status != 0)
+	{
+		string str("Directory not created");
+		throw str;
+	}
+	status = mkdir("testset", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if(status != 0)
+	{
+		string str("Directory not created");
+		throw str;
+	}
+	
+}
+
+void processBin(string filePath,string destFolder,int * filenameCntr)
+{
+	ifstream ifs(filePath.c_str(),ios::in|ios::binary);
+	BinaryImage binImage;
+	char stream[3*32*32];
+	stringstream destPath;
+        while(ifs)
+	{
+		Image magicImage;
+		binImage.read(ifs);
+		binImage.asPixels(stream);
+	        magicImage.read(32,32,"RGB",CharPixel,stream);
+		destPath<<destFolder<<"/"<<(*filenameCntr)<<".png";
+		*filenameCntr = *filenameCntr +1;
+		cout<<"Writing "<<destPath.str()<<endl;
+		magicImage.write(destPath.str());
+		destPath.str(std::string());
+	}
+
+	
+}
+
+int main(int argc,char * argv[])
+{
+	try{
+		InitializeMagick("/usr/local/bin");
+		
+		//create directories
+		//makeOutputDirectories();
+		int filenameCntr = 0;
+		
+                //get number of test bins
+		int numberOfTestBins = atoi(argv[1]);
+		
+		//get labels
+		//argv[2]
+		
+		
+		
+		
+		//process train files
+		int i=3;
+		for(;i<3+numberOfTestBins;i++)
+		{
+			string trainFilePath = argv[i];
+			processBin(trainFilePath, "trainset" , &filenameCntr);
+		}	
+		//process test files
+		string testFilePath = argv[i];
+		processBin(testFilePath,"testset",&filenameCntr);
+		
+	}
+	catch(string str)
+	{
+		cout<<str<<endl;
+	}
+	//for(int i=)
+	
+	return 1;
+}
